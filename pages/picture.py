@@ -58,7 +58,8 @@ with col2:
 if st.session_state.search_code_text:
     image_name = os.listdir(image_path_root)
     search_images_name = [i for i in image_name if i.startswith(st.session_state.search_code_text)]
-    for idx, image_name in enumerate(search_images_name):
+    search_images_name = sorted(search_images_name)
+    for idx, image_name in enumerate(search_images_name[::-1]):
         st.markdown(f":red[{image_name}]")
         st.image(f"{image_path_root}/{image_name}")
         st.markdown("---")

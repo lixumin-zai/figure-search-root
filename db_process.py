@@ -31,6 +31,15 @@ class Database:
         self.cursor.execute('INSERT INTO users (wechat_id, verification_code) VALUES (?, ?)', (wechat_id, verification_code))
         self.conn.commit()
 
+    def create_user_and_usage_count(self, wechat_id, verification_code, usage_count):
+        self.cursor.execute('SELECT * FROM users WHERE wechat_id = ? OR verification_code = ?', 
+                        (wechat_id, verification_code))
+        if self.cursor.fetchone() is not None:
+            raise UserAlreadyExistsError("该用户已存在")
+
+        self.cursor.execute('INSERT INTO users (wechat_id, verification_code, usage_count) VALUES (?, ?, ?)', (wechat_id, verification_code, usage_count))
+        self.conn.commit()
+
     def get_users(self):
         self.cursor.execute('SELECT * FROM users')
         return self.cursor.fetchall()
