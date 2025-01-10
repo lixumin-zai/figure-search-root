@@ -106,7 +106,7 @@ with data_col1:
             "wechat_id": st.column_config.Column(
                 "微信号",
                 help="微信号",
-                width="medium",
+                width="small",
                 required=True,
             ),
             "verification_code": st.column_config.Column(
@@ -123,7 +123,7 @@ with data_col1:
                 default=15,
                 min_value=0,
                 step=1,
-                format="%d"  # 确保 user_id 为整数
+                format="%d         ",  # 确保 user_id 为整数
             ),
         },
         hide_index=True,

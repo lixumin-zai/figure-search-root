@@ -38,17 +38,17 @@ if "choose_page" not in st.session_state:
 with st.sidebar:
     st.session_state.choose_page  = st.select_slider(
         "选择页数",
-        options=[i for i in range(1, len(st.session_state.images_data)//10+1)],
+        options=[i for i in range(1, len(st.session_state.images_data)//10+2)],
     )   
     print(st.session_state.choose_page)
 
 with col1_main:
     print(st.session_state.choose_page)
     for idx, image_data in enumerate(st.session_state.images_data[(st.session_state.choose_page-1)*10:(st.session_state.choose_page)*10]):
-        st.markdown(f":red[{image_data[0]}.]")
+        st.markdown(f"ID\: :red[{image_data[0]}]")
         col1, col2 = st.columns([4,1])
         with col1:
-            st.image(image_data[1])
+            st.image(image_data[1], width=300)
         with col2:
             st.button("删除",key=image_data[0], on_click=delete_image, args=(image_data[0],))
         st.markdown("---")
@@ -70,6 +70,7 @@ def insert_image():
         if st.session_state.upload_image:
             db.insert_image(st.session_state.upload_image.getvalue())
             st.session_state.upload_image = None
+        st.session_state.images_data = db.search_all_image()
         st.rerun()
         
 with st.sidebar:

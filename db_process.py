@@ -1,4 +1,5 @@
 import sqlite3
+import uuid
 
 class UserAlreadyExistsError(Exception):
     def __init__(self, message):
@@ -86,20 +87,79 @@ class Database:
         self.cursor.close()
         self.conn.close()
 
+
+class RechargeCodeDB:
+    def __init__(self, db_name):
+        self.conn = sqlite3.connect(db_name)
+        self.cursor = self.conn.cursor()
+        self.create_table()
+
+    def create_table(self):
+        self.cursor.execute('''
+        CREATE TABLE IF NOT EXISTS rechargeCode (
+            id INTEGER PRIMARY KEY,
+            recharge_code TEXT NOT NULL UNIQUE,
+            used_code TEXT,
+            usage_count INTEGER NOT NULL DEFAULT 100
+        )
+        ''')
+        self.conn.commit()
+
+    def create_code(self):
+        recharge_code = str(uuid.uuid4())
+        self.cursor.execute('SELECT * FROM rechargeCode WHERE recharge_code = ?', 
+                        (recharge_code, ))
+        if self.cursor.fetchone() is not None:
+            raise UserAlreadyExistsError("该用户已存在")
+
+        self.cursor.execute('INSERT INTO rechargeCode (recharge_code) VALUES (?)', (recharge_code, ))
+        self.conn.commit()
+        return recharge_code
+
+    def get_infos(self):
+        self.cursor.execute('SELECT * FROM rechargeCode')
+        return self.cursor.fetchall()
+
+    def get_info_by_recharge_code(self, recharge_code):
+        self.cursor.execute('SELECT * FROM rechargeCode WHERE recharge_code = ?', (recharge_code,))
+        return self.cursor.fetchone()
+
+    def get_info_by_used_code(self, used_code):
+        self.cursor.execute('SELECT * FROM rechargeCode WHERE used_code = ?', (used_code,))
+        return self.cursor.fetchone()  # 返回匹配的用户信息
+
+    def used_code(self, recharge_code, used_code):
+        info = self.get_info_by_recharge_code(recharge_code)
+        cost_time = 0
+        if info:
+            cost_time = info[3]
+        self.cursor.execute('UPDATE rechargeCode SET used_code = ?,usage_count = 0 WHERE recharge_code = ?', (used_code, recharge_code, ))
+        self.conn.commit()
+        return cost_time
+
+    def close(self):
+        self.cursor.close()
+        self.conn.close()
+
+
 if __name__ == "__main__":
     import uuid
-    db = Database('test_0928.db')
-    # db.create_user('lixumin', 'lixumin')
-    # db.delete_user('cz71227669889')
-    # db.create_user('cz71227669889', 'cz71227669889')
-    # db.increase_usage_count("cz71227669889", 85)
-    # db.updata_by_user_id(1, "xrkuma", "bini", "52013149999")
-    for i in db.get_users():
-        if i[1] == "xrkuma":
-            print(i)
-    import uuid
-    # db.create_user('xrkuma', "bini")
+    # db = Database('test_0928.db')
+    # # db.create_user('lixumin', 'lixumin')
+    # # db.delete_user('cz71227669889')
+    # # db.create_user('cz71227669889', 'cz71227669889')
+    # # db.increase_usage_count("cz71227669889", 85)
+    # # db.updata_by_user_id(1, "xrkuma", "bini", "52013149999")
+    # for i in db.get_users():
+    #     if i[1] == "xrkuma":
+    #         print(i)
+    # import uuid
+    # # db.create_user('xrkuma', "bini")
     
+    db = RechargeCodeDB("/root/project/figure_search/db/rechargecode.db")
+    data = db.get_infos()
+    for i in data:
+        print(i)
     # # 查询用户信息
     db.close()
 
